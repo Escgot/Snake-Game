@@ -10,7 +10,7 @@ BLOCK_SIZE = 20 # The size of our grid squares
 FPS = 12
 
 window = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Classic Snake")
+pygame.display.set_caption("Endless Borderless Snake")
 clock = pygame.time.Clock()
 
 # Colors
@@ -20,11 +20,9 @@ RED = (255, 0, 0)
 
 def main():
     # --- 2. Initial Game State ---
-    # Snake starts in the middle
     snake_x = WIDTH // 2
     snake_y = HEIGHT // 2
     
-    # The snake is a list of [x, y] coordinates
     snake_body = [[snake_x, snake_y]]
     
     # Movement direction (Starts moving right)
@@ -43,9 +41,7 @@ def main():
                 pygame.quit()
                 sys.exit()
             
-            # Key presses
             if event.type == pygame.KEYDOWN:
-                # Prevent reversing into yourself
                 if event.key == pygame.K_UP and dy == 0:
                     dx, dy = 0, -BLOCK_SIZE
                 elif event.key == pygame.K_DOWN and dy == 0:
@@ -56,17 +52,12 @@ def main():
                     dx, dy = BLOCK_SIZE, 0
 
         # --- 4. Game Logic ---
-        # Calculate new head position
-        new_head_x = snake_body[0][0] + dx
-        new_head_y = snake_body[0][1] + dy
+        # NEW: Calculate new head position WITH screen wrapping using % (modulo)
+        new_head_x = (snake_body[0][0] + dx) % WIDTH
+        new_head_y = (snake_body[0][1] + dy) % HEIGHT
         new_head = [new_head_x, new_head_y]
 
-        # Check for Game Over (Wall collision)
-        if (new_head_x < 0 or new_head_x >= WIDTH or 
-            new_head_y < 0 or new_head_y >= HEIGHT):
-            running = False # End loop if we hit a wall
-            
-        # Check for Game Over (Self collision)
+        # Check for Game Over (Self collision ONLY - Wall collision removed!)
         if new_head in snake_body:
             running = False
 
@@ -75,15 +66,13 @@ def main():
 
         # Check for Food
         if new_head_x == food_x and new_head_y == food_y:
-            # We ate food! Don't remove the tail, just spawn new food
             food_x = random.randrange(0, WIDTH, BLOCK_SIZE)
             food_y = random.randrange(0, HEIGHT, BLOCK_SIZE)
         else:
-            # Didn't eat food, remove the tail so we stay the same length
             snake_body.pop()
 
         # --- 5. Drawing ---
-        window.fill(BLACK) # Clear screen
+        window.fill(BLACK) 
         
         # Draw Food
         pygame.draw.rect(window, RED, (food_x, food_y, BLOCK_SIZE, BLOCK_SIZE))
@@ -95,10 +84,8 @@ def main():
         pygame.display.flip()
         clock.tick(FPS)
 
-    # If we break out of the loop, the game is over. 
-    # Restart the game by calling main() again.
+    # Restart the game if you bite your own tail
     main()
 
-# Start the game
 if __name__ == "__main__":
     main()
